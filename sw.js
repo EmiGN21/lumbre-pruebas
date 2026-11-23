@@ -1,4 +1,4 @@
-const cacheName = 'lumbre-shell-v20-translation-icons'
+const cacheName = 'lumbre-shell-v21-immersive-reader'
 const shell = ['./', './index.html', './style.css', './app.js', './reader-translation-gesture.js', './reader-lookup-speech.js', './legacy-audio-ui.js', './legacy-audio.js', './translations.js', './book-language.js', './pdf-import.js', './library-store.js', './speech-chunk.js', './epub-import.js', './vendor/fflate.mjs', './vendor/pdf.mjs', './vendor/pdf.worker.mjs', './catalog.json', './manifest.webmanifest', './assets/app-192.png', './assets/app-512.png', './assets/app-maskable.png', './assets/favicon.svg', './assets/hero.webp', './assets/quijote.webp', './assets/lazarillo.webp', './assets/leyendas.webp']
 
 self.addEventListener('install', event => {

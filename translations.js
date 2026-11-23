@@ -1,4 +1,6 @@
 const english = {
+  'Minimizar lectura':'Minimize reading','Opciones de lectura':'Reading options','Temporizador de apagado':'Sleep timer','Velocidad de reproducción':'Playback speed',
+  'La voz del dispositivo puede pausarse al bloquear la pantalla.':'Device narration may pause when the screen locks.',
   'Escritorio':'Desktop','En Chrome o Edge de escritorio, pulsa el icono':'In desktop Chrome or Edge, click the','Instalar':'Install','en la barra de direcciones o abre el menú del navegador y elige':'icon in the address bar or open the browser menu and choose',
   'La traducción en el dispositivo no está disponible en este navegador.':'On-device translation is unavailable in this browser.',
   'Descargando modelo de traducción…':'Downloading translation model…','Traduciendo…':'Translating…','No se pudo traducir en el dispositivo.':'Could not translate on device.','Cerrar traducción':'Close translation',

@@ -2,7 +2,7 @@
 <html lang="es-MX">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f8f7ef">
   <meta name="description" content="Escucha audiolibros gratuitos y lee tus propios libros en voz alta.">
   <title>Lumbre — Audiolibros y lectura gratis</title>
@@ -60,7 +60,8 @@
       </section>
       <section id="reading" aria-labelledby="reading-title" hidden>
         <header class="reader-head">
-          <div><h1 id="reading-title" tabindex="-1">Lectura</h1><p id="reading-meta"></p></div>
+          <button class="icon-button reader-minimize" data-action="minimize-reader" aria-label="Minimizar lectura" data-icon="chevron-down"></button>
+          <div class="reader-heading"><h1 id="reading-title" tabindex="-1">Lectura</h1><p id="reading-meta"></p></div>
           <div id="reading-actions" class="reading-actions" hidden>
             <button class="button outline" data-action="details-current"><span data-icon="list"></span>Secciones</button>
             <button class="button outline" data-action="toggle-translation" aria-pressed="false">Traducir al tocar</button>
@@ -99,6 +100,10 @@
   </div>
   <section class="dock" aria-label="Reproductor" id="dock" hidden>
     <button class="dock-book" data-action="details-current"><span id="dock-art" class="mini-art"></span><span><strong id="now-title"></strong><small id="now-chapter"></small></span></button>
+    <div class="reader-utilities">
+      <button class="icon-button" data-action="toggle-translation" aria-label="Traducir al tocar" aria-pressed="false" data-icon="language"></button>
+      <button class="icon-button" data-action="reader-options" aria-label="Opciones de lectura" aria-haspopup="dialog" aria-controls="reader-options" data-icon="more"></button>
+    </div>
     <div class="transport">
       <div class="controls">
         <button class="icon-button optional" data-action="previous" aria-label="Capítulo anterior" data-icon="previous"></button>
@@ -107,7 +112,7 @@
         <button class="icon-button" data-action="forward" aria-label="Adelantar 15 segundos" data-icon="forward"></button>
         <button class="icon-button optional" data-action="next" aria-label="Capítulo siguiente" data-icon="next"></button>
       </div>
-      <div class="timeline"><span id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" value="0" step="0.1" aria-label="Posición de reproducción"><span id="total">0:00</span></div>
+      <div class="timeline"><span id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" value="0" step="0.1" aria-label="Posición de reproducción"><span id="total">0:00</span><span id="remaining">−0:00</span></div>
     </div>
     <div class="extras">
       <details class="speed"><summary aria-label="Velocidad"><span id="speed-value">1×</span></summary><label><span>Velocidad</span><input id="speed" type="range" min="0.5" max="2.5" step="0.05" aria-label="Velocidad"></label></details>
@@ -122,6 +127,32 @@
     <a href="#lectura" data-view="lectura"><span data-icon="text"></span>Lectura</a>
     <a href="#configuracion" data-view="configuracion"><span data-icon="settings"></span>Ajustes</a>
   </nav>
+  <dialog id="reader-options" aria-labelledby="reader-options-title">
+    <div class="reader-options-header">
+      <h2 id="reader-options-title">Opciones de lectura</h2>
+      <button class="icon-button" data-action="close" aria-label="Cerrar" data-icon="close" autofocus></button>
+    </div>
+    <div class="reader-options-body">
+      <details>
+        <summary><span data-icon="list"></span><span>Secciones</span><span data-icon="chevron-down"></span></summary>
+        <ol id="reader-sections" class="chapters"></ol>
+      </details>
+      <details>
+        <summary><span data-icon="moon"></span><span>Temporizador de apagado</span><span data-icon="chevron-down"></span></summary>
+        <div class="reader-timer">
+          <button data-action="sleep" data-minutes="15" aria-pressed="false">15 minutos</button>
+          <button data-action="sleep" data-minutes="30" aria-pressed="false">30 minutos</button>
+          <button data-action="sleep" data-minutes="60" aria-pressed="false">60 minutos</button>
+          <button data-action="sleep" data-minutes="0" aria-pressed="true">Desactivar</button>
+        </div>
+      </details>
+      <details>
+        <summary><span data-icon="speedometer"></span><span>Velocidad de reproducción <output id="reader-speed-value">1×</output></span><span data-icon="chevron-down"></span></summary>
+        <label class="reader-speed-control"><span>Velocidad</span><input id="reader-speed" type="range" min="0.5" max="2.5" step="0.05"></label>
+      </details>
+      <p class="reader-audio-note">La voz del dispositivo puede pausarse al bloquear la pantalla.</p>
+    </div>
+  </dialog>
   <dialog id="book-dialog" aria-labelledby="detail-title">
     <div class="dialog-top"><button class="icon-button close" data-action="close" aria-label="Cerrar" data-icon="close"></button></div>
     <div class="detail-body" id="detail-body"></div>
@@ -155,6 +186,6 @@
     </div>
   </dialog>
   <div id="notice" class="toast" role="status" hidden></div>
-  <audio id="audio" preload="metadata"></audio>
+  <audio id="audio" preload="metadata" playsinline></audio>
 </body>
 </html>

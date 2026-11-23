@@ -26,6 +26,10 @@ const drawings = {
   forward: '<path d="M19 7V3m0 4h-4m4 0a8.5 8.5 0 1 0 1.3 7"/><path d="M9 11h1v6m3-6h3m-3 0v3h3v3h-3" stroke-width="1.1"/>',
   moon: '<path d="M20.5 14.5A9 9 0 0 1 9.5 3.5a9 9 0 1 0 11 11Z"/>',
   list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.1M4 12h.1M4 18h.1"/>',
+  'chevron-down': '<path d="m5 9 7 7 7-7"/>',
+  more: '<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>',
+  language: '<path d="M3 6h11M8.5 3v3m3 0c0 5-3.8 8.5-7.5 10m1.5-8c1 2.8 3.1 4.5 5 5.6M12 21l4.5-11L21 21m-7.4-3.5h5.8"/>',
+  speedometer: '<path d="M4 18a9 9 0 1 1 16 0H4Zm8-3 4-5"/>',
   close: '<path d="m6 6 12 12m0-12L6 18"/>',
   upload: '<path d="M12 16V4m-5 5 5-5 5 5M5 16v4h14v-4"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
@@ -68,6 +72,7 @@ const seek = $('#seek')
 const search = $('#search')
 const bookDialog = $('#book-dialog')
 const importDialog = $('#import-dialog')
+const readerOptions = $('#reader-options')
 const progress = load('progress', {})
 const saved = new Set(load('saved', []))
 let catalog = []
@@ -79,6 +84,7 @@ let detailId = ''
 let speed = Math.min(2.5, Math.max(0.5, Number(load('speed', 1)) || 1))
 let lastSave = 0
 let sleepTimer
+let sleepDeadline = 0
 let toastTimer
 let utterance
 let speechPlaying = false
@@ -91,11 +97,14 @@ let translating = load('translate-on-tap', false)
 let wakeLock
 let requestingWakeLock = false
 let readerPart
+let readerReturnView = 'biblioteca'
 let readerLines = []
 let activeLine = -1
 let installPrompt
 $('#speed').value = String(speed)
 $('#speed-value').textContent = speed + '×'
+$('#reader-speed').value = String(speed)
+$('#reader-speed-value').textContent = speed + '×'
 $('#app-language').value = load('app-language-mode', 'auto')
 $('#voice-language').value = voiceLanguage
 $('#theme').value = load('theme', 'auto')
@@ -200,6 +209,11 @@ function renderShelf() {
   const reading = location.hash === '#lectura'
   const settings = location.hash === '#configuracion'
   const library = !reading && !settings
+  if (!reading) {
+    readerReturnView = settings ? 'configuracion' : 'biblioteca'
+    document.body.classList.remove('reader-immersive')
+    if (readerOptions.open) readerOptions.close()
+  }
   const query = normalize(search.value.trim())
   for (const link of $$('[data-view]')) {
     if (link.dataset.view === (settings ? 'configuracion' : reading ? 'lectura' : 'biblioteca')) link.setAttribute('aria-current', 'page')
@@ -291,10 +305,21 @@ function unreadPdfNotice(pages) {
   return 'No se pudieron leer las páginas ' + list + (pages.length > 8 ? ' y ' + (pages.length - 8) + ' más.' : '.')
 }
 
+function renderChapters(book, action = 'chapter') {
+  const state = progress[book.id]
+  const pdf = book.type === 'pdf'
+  return book.chapters.map((part, i) => {
+    const selected = current?.book.id === book.id ? current.chapter === i : state?.chapter === i && !state?.finished
+    const extra = !pdf && part.reader ? '<br><small>' + escape(part.reader) + '</small>' : ''
+    const duration = formatTime(part.duration)
+    return '<li><button class="chapter" type="button" data-action="' + action + '" data-chapter="' + i + '"' + (selected ? ' aria-current="true"' : '') +
+      '><small>' + String(i + 1).padStart(2, '0') + '</small><span>' + escape(part.title) + extra + '</span><small>' + (pdf ? '≈ ' : '') + duration + '</small></button></li>'
+  }).join('')
+}
+
 function showDetails(book) {
   if (!book) return
   detailId = book.id
-  const state = progress[book.id]
   const bookmarked = saved.has(book.id)
   const pdf = book.type === 'pdf'
   const localAudio = book.type === 'audio' && book.imported
@@ -306,13 +331,7 @@ function showDetails(book) {
     : '<button class="button outline" data-action="bookmark" aria-pressed="' + bookmarked + '">' + icon(bookmarked ? 'check' : 'bookmark') + (bookmarked ? ' Guardado' : ' Guardar') + '</button>'
   const source = pdf || localAudio ? '' : '<a class="source" href="' + book.source + '" target="_blank" rel="noopener">Edición y narradores en LibriVox</a>'
   const read = pdf ? '<button class="button outline" data-action="read-book" data-book="' + book.id + '">' + icon('text') + ' Leer</button>' : ''
-  const chapters = book.chapters.map((part, i) => {
-    const selected = current?.book.id === book.id ? current.chapter === i : state?.chapter === i && !state?.finished
-    const extra = !pdf && part.reader ? '<br><small>' + escape(part.reader) + '</small>' : ''
-    const duration = formatTime(part.duration)
-    return '<li><button class="chapter" type="button" data-action="chapter" data-chapter="' + i + '"' + (selected ? ' aria-current="true"' : '') +
-      '><small>' + String(i + 1).padStart(2, '0') + '</small><span>' + escape(part.title) + extra + '</span><small>' + (pdf ? '≈ ' : '') + duration + '</small></button></li>'
-  }).join('')
+  const chapters = renderChapters(book)
   const unread = pdf && book.unreadPages?.length ? '<p class="muted">' + escape(unreadPdfNotice(book.unreadPages)) + '</p>' : ''
   $('#detail-body').innerHTML = '<div class="detail-head">' + art(book) + '<div><h2 id="detail-title">' + escape(book.title) + '</h2><p class="muted">' + escape(meta) +
     '</p><p>' + escape(description) + '</p>' + unread + '<div class="detail-actions"><button class="button primary" data-action="play-book" data-book="' + book.id + '">' + icon('play') + ' ' + resume +
@@ -333,11 +352,55 @@ function shownPosition() {
   return speaking() ? current.position / part.text.length * part.duration : current.position
 }
 
+const mediaSession = navigator.mediaSession
+let mediaPart = null
+const mediaActions = {
+  play: start,
+  pause: halt,
+  stop: halt,
+  seekbackward: () => jumpBy(-15),
+  seekforward: () => jumpBy(15),
+  seekto: ({ seekTime }) => { if (Number.isFinite(seekTime)) positionAt(seekTime) },
+}
+
+function updateMediaSession() {
+  if (!mediaSession) return
+  const part = current && !speaking() ? current : null
+  if (part !== mediaPart) {
+    mediaPart = part
+    if (!part || typeof MediaMetadata === 'function') {
+      mediaSession.metadata = part ? new MediaMetadata({
+        title: part.book.title,
+        artist: activePart().title,
+        album: part.book.author || 'Lumbre',
+        artwork: [192, 512].map(size => ({
+          src: new URL('./assets/app-' + size + '.png', import.meta.url).href,
+          sizes: size + 'x' + size,
+          type: 'image/png',
+        })),
+      }) : null
+    }
+    for (const [name, handler] of Object.entries(mediaActions)) {
+      try { mediaSession.setActionHandler(name, part ? handler : null) }
+      catch { /* The available lock-screen controls vary by browser. */ }
+    }
+    mediaSession.setPositionState?.()
+  }
+  mediaSession.playbackState = !part ? 'none' : isPlaying() ? 'playing' : 'paused'
+  if (!part || !current.ready || !Number.isFinite(audio.duration) || audio.duration <= 0) return
+  mediaSession.setPositionState?.({
+    duration: audio.duration,
+    playbackRate: audio.playbackRate,
+    position: Math.min(Math.max(0, audio.currentTime), audio.duration),
+  })
+}
+
 function renderReader() {
   const part = activePart()
   const container = $('#reader-text')
   const empty = $('#reader-empty')
   const hasText = !!part?.text
+  document.body.classList.toggle('reader-immersive', hasText)
   $('#reading-title').textContent = hasText ? current.book.title : 'Lectura'
   $('#reading-meta').textContent = hasText ? part.title : ''
   $('#reading-actions').hidden = !hasText
@@ -426,15 +489,50 @@ function openReader(book) {
   $('#reading-title').focus({ preventScroll: true })
 }
 
+async function minimizeReader(button) {
+  closeReaderTranslation()
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    button.disabled = true
+    try {
+      await $('#reading').animate([
+        { transform: 'translateY(0)', opacity: 1 },
+        { transform: 'translateY(24px)', opacity: 0 },
+      ], { duration: 150, easing: 'ease-in' }).finished
+    } catch { /* Continue if the transition is canceled. */ }
+    finally { button.disabled = false }
+  }
+  if (location.hash !== '#lectura') return
+  location.hash = readerReturnView
+  renderShelf()
+  $('.mobile-nav [aria-current="page"]')?.focus({ preventScroll: true })
+}
+
+function showReaderOptions() {
+  if (!current || readerOptions.open) return
+  $('#reader-sections').innerHTML = renderChapters(current.book, 'reader-section')
+  $('.reader-audio-note', readerOptions).hidden = !speaking()
+  for (const details of $$('details', readerOptions)) details.open = false
+  readerOptions.showModal()
+}
+
+function selectReaderSection(index) {
+  if (!current?.book.chapters[index]) return
+  readerOptions.close()
+  if (current.chapter !== index) openPart(current.book, index, 0, !!(isPlaying() || lookupSpeech.narrationSuspended))
+}
+
 function updateTimeline() {
   const duration = partDuration()
   const position = shownPosition()
   seek.max = duration || 1
   seek.value = position
+  seek.style.setProperty('--seek-progress', (duration ? Math.min(100, position / duration * 100) : 0) + '%')
   seek.setAttribute('aria-valuetext', (speaking() ? 'Tiempo aproximado ' : '') + formatTime(position) + ' de ' + formatTime(duration))
   $('#elapsed').textContent = formatTime(position)
   $('#total').textContent = (speaking() ? '≈ ' : '') + formatTime(duration)
+  $('#remaining').textContent = (speaking() ? '≈ ' : '') + '−' + formatTime(duration - position)
   updateReader()
+  updateMediaSession()
 }
 
 function updatePlayer() {
@@ -486,10 +584,10 @@ function halt() {
 }
 
 function openPart(book, index, position = 0, play = true) {
-  halt()
-  if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = undefined }
   const part = book.chapters[index]
   if (!part) return
+  halt()
+  if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = undefined }
   current = { book, chapter: index, position: Math.min(speakingLimit(book, part), Math.max(0, position)), ready: false, started: play || !!progress[book.id], finished: false }
   playerError()
   if (book.type === 'audio') {
@@ -499,6 +597,9 @@ function openPart(book, index, position = 0, play = true) {
     }
     audio.src = part.url
     audio.playbackRate = speed
+  } else if (audio.hasAttribute('src')) {
+    audio.removeAttribute('src')
+    audio.load()
   }
   if (play) start()
   persist(true)
@@ -606,8 +707,10 @@ function startSpeech() {
     current.position = offset + event.charIndex
     updateTimeline()
     persist()
+    expireSleepTimer()
   }
   nextUtterance.onend = () => {
+    expireSleepTimer()
     if (utterance !== nextUtterance) return
     current.position = offset + phrase.length
     persist(true)
@@ -623,15 +726,20 @@ function startSpeech() {
   window.speechSynthesis.speak(nextUtterance)
 }
 
+function jumpBy(seconds) {
+  const position = current?.ready && !speaking() ? audio.currentTime : shownPosition()
+  positionAt(position + seconds)
+}
+
 function positionAt(seconds) {
   stopLookupPlayback()
-  if (!current) return
+  if (!current || !Number.isFinite(seconds)) return
   const duration = partDuration()
   const position = Math.min(Math.max(0, duration - 0.15), Math.max(0, seconds))
   if (speaking()) {
     const wasPlaying = speechPlaying
     const text = activePart().text
-    const index = Math.floor(position / duration * text.length)
+    const index = duration ? Math.floor(position / duration * text.length) : 0
     current.position = index > 0 ? text.lastIndexOf(' ', index - 1) + 1 : 0
     if (wasPlaying) startNarration()
   } else {
@@ -688,7 +796,7 @@ const lookupSpeech = createLookupSpeech({
 
 
 function updateTranslationMode() {
-  $('[data-action="toggle-translation"]').setAttribute('aria-pressed', String(translating))
+  for (const button of $$('[data-action="toggle-translation"]')) button.setAttribute('aria-pressed', String(translating))
   const reader = $('#reader-text')
   reader.dataset.translate = String(translating)
   if (translating) {
@@ -886,6 +994,17 @@ const translationGesture = bindReaderTranslation($('#reader-text'), {
 })
 updateTranslationMode()
 
+function clearCurrentBook() {
+  halt()
+  current = null
+  dock.hidden = true
+  audio.removeAttribute('src')
+  audio.load()
+  if (localAudioUrl) URL.revokeObjectURL(localAudioUrl)
+  localAudioUrl = undefined
+  updateMediaSession()
+}
+
 async function resetImports(button) {
   if (!window.confirm(translate('¿Eliminar todos tus libros y audios importados de este dispositivo?'))) return
   button.disabled = true
@@ -896,13 +1015,7 @@ async function resetImports(button) {
       return keys
     })
     if (current && ids.includes(current.book.id)) {
-      halt()
-      current = null
-      dock.hidden = true
-      audio.removeAttribute('src')
-      audio.load()
-      if (localAudioUrl) URL.revokeObjectURL(localAudioUrl)
-      localAudioUrl = undefined
+      clearCurrentBook()
     }
     for (const id of ids) { delete progress[id]; saved.delete(id) }
     if (ids.includes(load('recent', ''))) save('recent', '')
@@ -954,23 +1067,30 @@ audio.addEventListener('timeupdate', () => {
   current.position = audio.currentTime
   updateTimeline()
   persist()
+  expireSleepTimer()
 })
 audio.addEventListener('playing', () => { if (isCurrentAudio()) { playerError(); updatePlayer() } })
 audio.addEventListener('pause', () => { if (isCurrentAudio()) { persist(true); updatePlayer(); renderShelf() } })
+audio.addEventListener('ratechange', () => { if (isCurrentAudio()) updateMediaSession() })
 audio.addEventListener('ended', () => { if (isCurrentAudio()) finishPart() })
 audio.addEventListener('error', () => {
   if (isCurrentAudio() && current.started) playerError('No se pudo cargar este capítulo. Comprueba tu conexión o elige otro capítulo.')
 })
 seek.addEventListener('input', () => positionAt(Number(seek.value)))
-$('#speed').addEventListener('input', event => {
-  speed = Number(event.target.value)
-  $('#speed-value').textContent = speed + '×'
-  audio.playbackRate = speed
-})
-$('#speed').addEventListener('change', () => {
-  save('speed', speed)
-  if (speechPlaying) startNarration()
-})
+const speedInputs = [$('#speed'), $('#reader-speed')]
+for (const input of speedInputs) {
+  input.addEventListener('input', () => {
+    speed = Number(input.value)
+    for (const peer of speedInputs) if (peer !== input) peer.value = input.value
+    $('#speed-value').textContent = speed + '×'
+    $('#reader-speed-value').textContent = speed + '×'
+    audio.playbackRate = speed
+  })
+  input.addEventListener('change', () => {
+    save('speed', speed)
+    if (speechPlaying) startNarration()
+  })
+}
 
 $('#app-language').addEventListener('change', event => {
   save('app-language-mode', event.target.value)
@@ -1051,18 +1171,28 @@ $('#keep-awake').addEventListener('change', event => {
 })
 document.addEventListener('visibilitychange', updateWakeLock)
 
+function updateTimerControls(minutes) {
+  $('.sleep').toggleAttribute('data-active', minutes > 0)
+  for (const button of $$('[data-action="sleep"]', readerOptions)) {
+    button.setAttribute('aria-pressed', String(Number(button.dataset.minutes) === minutes))
+  }
+}
+
+function expireSleepTimer() {
+  if (!sleepDeadline || Date.now() < sleepDeadline) return
+  clearTimeout(sleepTimer)
+  sleepDeadline = 0
+  updateTimerControls(0)
+  halt()
+  notify('Temporizador terminado. La reproducción se pausó.')
+}
+
 function setSleep(minutes) {
   clearTimeout(sleepTimer)
-  const control = $('.sleep')
-  control.open = false
-  control.toggleAttribute('data-active', !!minutes)
-  if (minutes) {
-    sleepTimer = setTimeout(() => {
-      halt()
-      control.removeAttribute('data-active')
-      notify('Temporizador terminado. La reproducción se pausó.')
-    }, minutes * 60_000)
-  }
+  $('.sleep').open = false
+  sleepDeadline = minutes ? Date.now() + minutes * 60_000 : 0
+  updateTimerControls(minutes)
+  if (minutes) sleepTimer = setTimeout(expireSleepTimer, minutes * 60_000)
   notify(minutes ? 'La reproducción se pausará en ' + minutes + ' minutos.' : 'Temporizador desactivado.')
 }
 
@@ -1172,11 +1302,7 @@ async function removePdf(book, button) {
   button.disabled = true
   try {
     await pdfStorage('readwrite', store => store.delete(book.id))
-    if (current?.book.id === book.id) {
-      halt()
-      current = null
-      dock.hidden = true
-    }
+    if (current?.book.id === book.id) clearCurrentBook()
     if (load('recent', '') === book.id) save('recent', '')
     pdfs = pdfs.filter(item => item.id !== book.id)
     delete progress[book.id]
@@ -1200,6 +1326,9 @@ document.addEventListener('click', event => {
     case 'details-current': showDetails(current?.book); break
     case 'read-book': openReader(book); break
     case 'read-current': openReader(current?.book); break
+    case 'minimize-reader': void minimizeReader(target); break
+    case 'reader-options': showReaderOptions(); break
+    case 'reader-section': selectReaderSection(Number(target.dataset.chapter)); break
     case 'toggle-translation':
       translating = !translating
       save('translate-on-tap', translating)
@@ -1217,8 +1346,8 @@ document.addEventListener('click', event => {
       break
     case 'previous': relativeChapter(-1); break
     case 'next': relativeChapter(1); break
-    case 'rewind': positionAt(shownPosition() - 15); break
-    case 'forward': positionAt(shownPosition() + 15); break
+    case 'rewind': jumpBy(-15); break
+    case 'forward': jumpBy(15); break
     case 'import': openImport(); break
     case 'close': target.closest('dialog').close(); break
     case 'sleep': setSleep(Number(target.dataset.minutes)); break
@@ -1271,7 +1400,10 @@ for (const nav of $$('[data-view], .brand')) nav.addEventListener('click', () =>
 window.addEventListener('hashchange', () => { renderShelf(); window.scrollTo(0, 0) })
 window.addEventListener('pagehide', () => { stopLookupPlayback(); persist(true); if (speaking()) stopSpeech() })
 window.addEventListener('pageshow', event => { if (event.persisted) updatePlayer() })
-document.addEventListener('visibilitychange', () => { if (document.hidden) persist(true) })
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) persist(true)
+  else expireSleepTimer()
+})
 
 function showInstallButtons() {
   const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone
