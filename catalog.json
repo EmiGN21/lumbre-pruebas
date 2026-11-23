@@ -1,0 +1,425 @@
+[
+  {
+    "id": "quijote",
+    "title": "Don Quijote de la Mancha",
+    "author": "Miguel de Cervantes",
+    "genre": "Aventura",
+    "tag": "Primera parte",
+    "description": "Un hidalgo de La Mancha, su escudero Sancho y un mundo que se empeña en llevarles la contraria. La primera parte de la gran aventura de Cervantes.",
+    "source": "https://librivox.org/don-quijote-vol-1-by-miguel-de-cervantes-saavedra/",
+    "type": "audio",
+    "chapters": [
+      {
+        "title": "Tasa & El Rey",
+        "reader": "Alex Khype",
+        "duration": 420,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_01_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Dedicación: Al Duque de Béjar & Prólogo",
+        "reader": "marevalo",
+        "duration": 1670,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_02_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo I-III",
+        "reader": "Nessi",
+        "duration": 2621,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_03_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo IV-V",
+        "reader": "paulino",
+        "duration": 2264,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_04_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo VI-VIII",
+        "reader": "paulino",
+        "duration": 3497,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_05_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo IX-X",
+        "reader": "Sonia Vargas",
+        "duration": 1706,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_06a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XI",
+        "reader": "Orgullomoore",
+        "duration": 992,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_06b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XII",
+        "reader": "Orgullomoore",
+        "duration": 957,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_06c_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XIII",
+        "reader": "Karen Savage",
+        "duration": 1368,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_06d_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XIV-XV",
+        "reader": "Nessi",
+        "duration": 2358,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_07_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XVI-XVII",
+        "reader": "Fiamma",
+        "duration": 2322,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_08_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XVIII-XIX",
+        "reader": "Fernando Vulcano",
+        "duration": 2740,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_09a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XX",
+        "reader": "Fernando Vulcano",
+        "duration": 2075,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_09b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXI-XXII",
+        "reader": "Fernando Vulcano",
+        "duration": 3291,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_09c_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXIII",
+        "reader": "Sunny",
+        "duration": 1681,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_10_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXIV",
+        "reader": "Eduardo Islas",
+        "duration": 1297,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_11a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXV",
+        "reader": "Eduardo Islas",
+        "duration": 2418,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_11b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXVI",
+        "reader": "Eduardo Islas",
+        "duration": 1234,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_11c_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXVII",
+        "reader": "Eduardo Islas",
+        "duration": 2596,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_11d_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXVIII",
+        "reader": "Nessi",
+        "duration": 2129,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_12_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXIX",
+        "reader": "Nessi",
+        "duration": 1635,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_13_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXX-XXXII",
+        "reader": "Sonia Vargas",
+        "duration": 3023,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_14_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXIII",
+        "reader": "Lorena",
+        "duration": 3200,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXIV",
+        "reader": "Lorena",
+        "duration": 3269,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXV",
+        "reader": "Lorena",
+        "duration": 1488,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15c_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXVI",
+        "reader": "Sandra in Wales, United Kingdom",
+        "duration": 1721,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15d_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXVII",
+        "reader": "Sandra in Wales, United Kingdom",
+        "duration": 1878,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15e_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XXXVIII-XXXIX",
+        "reader": "Sandra in Wales, United Kingdom",
+        "duration": 2177,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15f_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XL",
+        "reader": "Sandra in Wales, United Kingdom",
+        "duration": 2156,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_15g_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLI",
+        "reader": "Karen Savage",
+        "duration": 2558,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_16_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLII-XLIV",
+        "reader": "Nessi",
+        "duration": 3658,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_17a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLV-XLVI",
+        "reader": "Nessi",
+        "duration": 2523,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_17b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLVII",
+        "reader": "Luigina",
+        "duration": 1977,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_18a_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLVIII",
+        "reader": "Eduardo Islas",
+        "duration": 1163,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_18b_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo XLIX",
+        "reader": "Alex Khype",
+        "duration": 1115,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_18c_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo L",
+        "reader": "Nessi",
+        "duration": 922,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_19_cervantes_64kb.mp3"
+      },
+      {
+        "title": "Capítulo LI-LII",
+        "reader": "Karen Savage",
+        "duration": 2124,
+        "url": "https://archive.org/download/don_quijote_vol1_0706_librivox/quijote_vol1_20_cervantes_64kb.mp3"
+      }
+    ],
+    "duration": 76223
+  },
+  {
+    "id": "lazarillo",
+    "title": "Lazarillo de Tormes",
+    "author": "Anónimo",
+    "genre": "Picaresca",
+    "tag": "",
+    "description": "Lázaro cuenta cómo aprendió a sobrevivir entre amos, engaños y una mala fortuna que nunca se toma un descanso.",
+    "source": "https://librivox.org/lazarillo-de-tormes/",
+    "type": "audio",
+    "chapters": [
+      {
+        "title": "Prólogo y tratado primero",
+        "reader": "Tux",
+        "duration": 1775,
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_1_anonimo_64kb.mp3"
+      },
+      {
+        "title": "Tratado segundo",
+        "reader": "Tux",
+        "duration": 1410,
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_2_anonimo_64kb.mp3"
+      },
+      {
+        "title": "Tratado tercero",
+        "reader": "Tux",
+        "duration": 2220,
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_3_anonimo_64kb.mp3"
+      },
+      {
+        "title": "Tratados cuarto y quinto",
+        "reader": "Tux",
+        "duration": 1148,
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_4_anonimo_64kb.mp3"
+      },
+      {
+        "title": "Tratados sexto y séptimo",
+        "reader": "Tux",
+        "duration": 443,
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_5_anonimo_64kb.mp3"
+      }
+    ],
+    "duration": 6996
+  },
+  {
+    "id": "leyendas",
+    "title": "Leyendas",
+    "author": "Gustavo Adolfo Bécquer",
+    "genre": "Misterio",
+    "tag": "",
+    "description": "Campanas a medianoche, promesas imposibles y apariciones en la niebla. Relatos sobrenaturales del Romanticismo español.",
+    "source": "https://librivox.org/leyendas-by-gustavo-adolfo-becquer/",
+    "type": "audio",
+    "chapters": [
+      {
+        "title": "Creed en Dios",
+        "reader": "Aldariel",
+        "duration": 1402,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_01_becquer_64kb.mp3"
+      },
+      {
+        "title": "El Cristo de la calavera",
+        "reader": "Gabriela Cowan",
+        "duration": 1620,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_02_becquer_64kb.mp3"
+      },
+      {
+        "title": "El beso",
+        "reader": "Marial",
+        "duration": 1788,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_03_becquer_64kb.mp3"
+      },
+      {
+        "title": "El caudillo de las manos rojas, 1ra parte",
+        "reader": "Gabriela Cowan",
+        "duration": 2020,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_04a_becquer_64kb.mp3"
+      },
+      {
+        "title": "El caudillo de las manos rojas, 2da parte",
+        "reader": "Gabriela Cowan",
+        "duration": 2799,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_04b_becquer_64kb.mp3"
+      },
+      {
+        "title": "El gnomo",
+        "reader": "Gabriela Cowan",
+        "duration": 2277,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_05_becquer_64kb.mp3"
+      },
+      {
+        "title": "El miserere",
+        "reader": "Vicente Cepeda",
+        "duration": 1384,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_06_becquer_64kb.mp3"
+      },
+      {
+        "title": "El monte de las ánimas",
+        "reader": "Elena del Valle",
+        "duration": 1161,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_07_becquer_64kb.mp3"
+      },
+      {
+        "title": "El rayo de luna",
+        "reader": "Omar",
+        "duration": 1493,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_08_becquer_64kb.mp3"
+      },
+      {
+        "title": "¡Es raro!",
+        "reader": "frauka",
+        "duration": 1395,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_09_becquer_64kb.mp3"
+      },
+      {
+        "title": "La ajorca de oro",
+        "reader": "frauka",
+        "duration": 1005,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_10_becquer_64kb.mp3"
+      },
+      {
+        "title": "La arquitectura árabe en Toledo",
+        "reader": "frauka",
+        "duration": 1118,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_11_becquer_64kb.mp3"
+      },
+      {
+        "title": "La corza blanca",
+        "reader": "frauka",
+        "duration": 2799,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_12_becquer_64kb.mp3"
+      },
+      {
+        "title": "La creación",
+        "reader": "Legentis",
+        "duration": 1025,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_13_becquer_64kb.mp3"
+      },
+      {
+        "title": "La cruz del Diablo",
+        "reader": "Gabriela Cowan",
+        "duration": 2533,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_14_becquer_64kb.mp3"
+      },
+      {
+        "title": "La cueva de la mora",
+        "reader": "DreamVoz",
+        "duration": 749,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_15_becquer_64kb.mp3"
+      },
+      {
+        "title": "La promesa",
+        "reader": "Rosacarmela",
+        "duration": 1626,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_16_becquer_64kb.mp3"
+      },
+      {
+        "title": "La rosa de pasión",
+        "reader": "Legentis",
+        "duration": 1289,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_17_becquer_64kb.mp3"
+      },
+      {
+        "title": "Las hojas secas",
+        "reader": "sabandija",
+        "duration": 523,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_18_becquer_64kb.mp3"
+      },
+      {
+        "title": "Los ojos verdes",
+        "reader": "Rosacarmela",
+        "duration": 1240,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_19_becquer_64kb.mp3"
+      },
+      {
+        "title": "Maese Pérez el organista",
+        "reader": "Gabriela Cowan",
+        "duration": 2215,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_20_becquer_64kb.mp3"
+      },
+      {
+        "title": "Tres fechas",
+        "reader": "Gabriela Cowan",
+        "duration": 2832,
+        "url": "https://archive.org/download/leyendas_becquer_1208_librivox/leyendas_21_becquer_64kb.mp3"
+      }
+    ],
+    "duration": 36293
+  }
+]

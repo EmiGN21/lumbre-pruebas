@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f8f7ef">
+  <meta name="description" content="Escucha audiolibros gratuitos y lee tus propios libros en voz alta.">
+  <title>Lumbre — Audiolibros y lectura gratis</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./assets/app-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./legacy-audio-ui.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ir al contenido</a>
+  <aside class="sidebar">
+    <a class="brand" href="#biblioteca" aria-label="Lumbre, inicio"><span class="mark" data-icon="flame"></span><span>Lumbre<small>AUDIOLIBROS</small></span></a>
+<nav aria-label="Navegación principal">
+      <a href="#biblioteca" data-view="biblioteca"><span data-icon="library"></span>Biblioteca</a>
+      <a href="#lectura" data-view="lectura"><span data-icon="text"></span>Lectura</a>
+      <a href="#configuracion" data-view="configuracion"><span data-icon="settings"></span>Ajustes</a>
+      <button class="install-link" data-action="install"><span data-icon="install"></span>Instalar Lumbre</button>
+    </nav>
+    <div class="side-bottom">
+
+      <button class="add-link" data-action="import"><span class="side-file" data-icon="file"></span><span><strong>Importar archivo</strong><small>Escucha tus libros</small></span><span data-icon="plus"></span></button>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <a class="mobile-brand brand" href="#biblioteca" aria-label="Lumbre, inicio"><span class="mark" data-icon="flame"></span><span>Lumbre</span></a>
+      <form class="search" role="search">
+        <span data-icon="search"></span><input id="search" type="search" aria-label="Buscar audiolibros" placeholder="Buscar título o autor" autocomplete="off"><kbd aria-hidden="true">/</kbd>
+      </form>
+      <button class="button outline topbar-import" data-action="import"><span data-icon="plus"></span><span>Importar</span></button>
+    </header>
+    <main id="main" tabindex="-1">
+      <section id="home">
+        <div class="intro"><h1>Biblioteca</h1></div>
+        <article class="hero" id="resume-card" hidden>
+          <div id="resume-art" aria-hidden="true"></div>
+          <div class="hero-copy" id="resume-copy">
+            <p class="resume-kicker">Sigue escuchando</p>
+            <h2 id="resume-title"></h2>
+            <p class="hero-author" id="resume-author"></p>
+            <p class="hero-description" id="resume-meta"></p>
+            <button class="button hero-button" id="resume-button" data-action="play-book"><span data-icon="play"></span><span id="hero-action">Continuar</span></button>
+          </div>
+        </article>
+      </section>
+      <section id="my-shelf" aria-labelledby="my-shelf-title">
+        <div class="shelf-heading"><h2 id="my-shelf-title">Mis libros</h2><span id="my-shelf-count"></span></div>
+        <div class="books" id="my-books"></div>
+      </section>
+      <section id="shelf" aria-labelledby="shelf-title">
+        <div class="shelf-heading"><h2 id="shelf-title">Clásicos</h2><span id="shelf-count"></span></div>
+        <div class="books" id="books"><p class="muted">Cargando audiolibros…</p></div>
+      </section>
+      <section id="reading" aria-labelledby="reading-title" hidden>
+        <header class="reader-head">
+          <div><h1 id="reading-title" tabindex="-1">Lectura</h1><p id="reading-meta"></p></div>
+          <div id="reading-actions" class="reading-actions" hidden>
+            <button class="button outline" data-action="details-current"><span data-icon="list"></span>Secciones</button>
+            <button class="button outline" data-action="toggle-translation" aria-pressed="false">Traducir al tocar</button>
+          </div>
+        </header>
+        <div id="reader-text" tabindex="0" aria-label="Texto de la sección"></div>
+        <div id="reader-empty" class="empty"></div>
+      </section>
+      <section id="settings" hidden aria-labelledby="settings-title">
+        <div class="intro"><h1 id="settings-title">Configuración</h1><p>Personaliza tu experiencia de lectura.</p></div>
+        <div class="settings-card">
+          <label class="field">Idioma de la aplicación <select id="app-language"><option value="auto">Según el dispositivo</option><option value="es">Español</option><option value="en">English</option></select></label>
+          <label class="field">Idioma del libro <select id="voice-language"><option value="auto">Detectar automáticamente</option><option value="es">Español</option><option value="en">English</option></select></label>
+          <label class="field">Voz en español <select id="voice-es"></select></label>
+          <label class="field">Voz en inglés <select id="voice-en"></select></label>
+          <div class="field" role="group" aria-labelledby="theme-label">
+            <span id="theme-label">Apariencia</span>
+            <select id="theme" hidden aria-hidden="true" tabindex="-1"><option value="auto">Según el dispositivo</option><option value="light">Claro</option><option value="dark">Oscuro</option></select>
+            <div class="theme-switch" data-active="light">
+              <span class="theme-thumb" aria-hidden="true"></span>
+              <button type="button" class="theme-option" data-theme-choice="light" aria-label="Claro" aria-pressed="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>
+              </button>
+              <button type="button" class="theme-option" data-theme-choice="dark" aria-label="Oscuro" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A9 9 0 0 1 9.5 3.5a9 9 0 1 0 11 11Z"/></svg>
+              </button>
+            </div>
+          </div>
+          <label class="ocr-option"><input id="keep-awake" type="checkbox"> Mantener pantalla activa al leer o escuchar</label>
+          <button class="button outline" data-action="reset-imports" disabled>Restablecer libros importados</button>
+          <button class="button outline" data-action="install"><span data-icon="install"></span>Instalar Lumbre</button>
+        </div>
+      </section>
+      <footer class="credits" id="credits"><span>Grabaciones del catálogo por <a href="https://librivox.org/" target="_blank" rel="noopener">LibriVox</a></span><span>El progreso y tus PDF se guardan en este navegador.</span><button class="install-link" data-action="install" hidden><span data-icon="install"></span>Instalar app</button></footer>
+    </main>
+  </div>
+  <section class="dock" aria-label="Reproductor" id="dock" hidden>
+    <button class="dock-book" data-action="details-current"><span id="dock-art" class="mini-art"></span><span><strong id="now-title"></strong><small id="now-chapter"></small></span></button>
+    <div class="transport">
+      <div class="controls">
+        <button class="icon-button optional" data-action="previous" aria-label="Capítulo anterior" data-icon="previous"></button>
+        <button class="icon-button" data-action="rewind" aria-label="Retroceder 15 segundos" data-icon="rewind"></button>
+        <button class="round" data-action="toggle" aria-label="Reproducir" data-icon="play"></button>
+        <button class="icon-button" data-action="forward" aria-label="Adelantar 15 segundos" data-icon="forward"></button>
+        <button class="icon-button optional" data-action="next" aria-label="Capítulo siguiente" data-icon="next"></button>
+      </div>
+      <div class="timeline"><span id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" value="0" step="0.1" aria-label="Posición de reproducción"><span id="total">0:00</span></div>
+    </div>
+    <div class="extras">
+      <details class="speed"><summary aria-label="Velocidad"><span id="speed-value">1×</span></summary><label><span>Velocidad</span><input id="speed" type="range" min="0.5" max="2.5" step="0.05" aria-label="Velocidad"></label></details>
+      <details class="sleep"><summary class="icon-button" aria-label="Temporizador" title="Temporizador" data-icon="moon"></summary><div><strong>Temporizador</strong><button data-action="sleep" data-minutes="15">15 minutos</button><button data-action="sleep" data-minutes="30">30 minutos</button><button data-action="sleep" data-minutes="60">60 minutos</button><button data-action="sleep" data-minutes="0">Desactivar</button></div></details>
+      <button class="icon-button reading-open" data-action="read-current" aria-label="Leer mientras escuchas" title="Leer mientras escuchas" data-icon="text"></button>
+      <button class="icon-button chapter-open" data-action="details-current" aria-label="Ver capítulos" title="Ver capítulos" data-icon="list"></button>
+    </div>
+    <p id="player-error" role="status" hidden></p>
+  </section>
+  <nav class="mobile-nav" aria-label="Navegación móvil">
+    <a href="#biblioteca" data-view="biblioteca"><span data-icon="library"></span>Biblioteca</a>
+    <a href="#lectura" data-view="lectura"><span data-icon="text"></span>Lectura</a>
+    <a href="#configuracion" data-view="configuracion"><span data-icon="settings"></span>Ajustes</a>
+  </nav>
+  <dialog id="book-dialog" aria-labelledby="detail-title">
+    <div class="dialog-top"><button class="icon-button close" data-action="close" aria-label="Cerrar" data-icon="close"></button></div>
+    <div class="detail-body" id="detail-body"></div>
+  </dialog>
+  <dialog id="import-dialog" aria-labelledby="import-title">
+    <div class="dialog-top"><button class="icon-button close" data-action="close" aria-label="Cerrar" data-icon="close"></button></div>
+    <div class="import-body">
+      <span class="import-mark" data-icon="file"></span>
+      <h2 id="import-title">Importar archivo</h2>
+      <p>Agrega un PDF con texto seleccionable, un EPUB o un archivo de audio.</p>
+      <form id="import-form">
+        <label class="dropzone" id="dropzone"><span data-icon="upload"></span><strong id="file-label">Seleccionar un archivo</strong><small>PDF y EPUB hasta 40 MB · audio hasta 250 MB</small><input type="file" id="file" accept=".pdf,.epub,.mp3,.m4a,.m4b,.mp4,.aac,.wav,.ogg,.opus,.flac,application/pdf,application/epub+zip,audio/*" required></label>
+        <label class="field">Título <input id="pdf-title" maxlength="120" placeholder="Nombre del audiolibro"></label>
+        <label class="ocr-option"><input type="checkbox" id="import-ocr"> Reconocer texto de páginas escaneadas (PDF)</label>
+        <small class="muted">El reconocimiento puede tardar y descarga datos de idioma la primera vez.</small>
+        <p id="import-status" role="status" hidden></p>
+        <button class="button primary" type="submit" id="import-submit"><span data-icon="plus"></span>Agregar a mi biblioteca</button>
+      </form>
+    </div>
+  </dialog>
+  <dialog id="install-dialog" aria-labelledby="install-title">
+    <div class="dialog-top"><button class="icon-button close" data-action="close" aria-label="Cerrar" data-icon="close"></button></div>
+    <div class="import-body">
+      <h2 id="install-title">Instalar Lumbre</h2>
+      <p>Elige tu dispositivo para ver los pasos.</p>
+      <div class="install-options"><button class="button outline" data-action="install-desktop">Escritorio</button><button class="button outline" data-action="install-iphone">iPhone</button><button class="button outline" data-action="install-android">Android</button></div>
+      <div id="install-desktop"><p>En Chrome o Edge de escritorio, pulsa el icono <strong>Instalar</strong> en la barra de direcciones o abre el menú del navegador y elige <strong>Instalar Lumbre</strong>.</p></div>
+      <div id="install-iphone" hidden><h3>iPhone</h3><p>Abre Lumbre en Safari. Pulsa Compartir y elige <strong>Añadir a pantalla de inicio</strong>. Activa <strong>Abrir como app web</strong> si aparece.</p></div>
+      <div id="install-android" hidden><h3>Android</h3><p>Abre Lumbre en Chrome o Edge. Elige <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong> en el menú.</p></div>
+      <button class="button primary" data-action="install-native" hidden>Instalar ahora</button>
+    </div>
+  </dialog>
+  <div id="notice" class="toast" role="status" hidden></div>
+  <audio id="audio" preload="metadata"></audio>
+</body>
+</html>
