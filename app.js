@@ -370,6 +370,8 @@ function shownPosition() {
 }
 
 const mediaSession = navigator.mediaSession
+const usesSystemTransport = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 let mediaPart = null
 const mediaActions = {
   play: start,
@@ -397,12 +399,16 @@ function updateMediaSession() {
         })),
       }) : null
     }
-    for (const [name, handler] of Object.entries(mediaActions)) {
-      try { mediaSession.setActionHandler(name, part ? handler : null) }
-      catch { /* The available lock-screen controls vary by browser. */ }
+    // With no custom handlers, WebKit routes system commands directly to the audio element.
+    if (!usesSystemTransport) {
+      for (const [name, handler] of Object.entries(mediaActions)) {
+        try { mediaSession.setActionHandler(name, part ? handler : null) }
+        catch { /* The available lock-screen controls vary by browser. */ }
+      }
+      mediaSession.setPositionState?.()
     }
-    mediaSession.setPositionState?.()
   }
+  if (usesSystemTransport) return
   mediaSession.playbackState = !part ? 'none' : isPlaying() ? 'playing' : 'paused'
   if (!part || !current.ready || !Number.isFinite(audio.duration) || audio.duration <= 0) return
   mediaSession.setPositionState?.({
