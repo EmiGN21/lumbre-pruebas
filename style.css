@@ -496,6 +496,17 @@ main { padding-top: 38px; }
 }
 .inline-translation-control:hover { background: var(--interactive); color: var(--ink); }
 .inline-translation-control svg { width: 16px; height: 16px; }
+.inline-translation-online {
+  min-height: 36px;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+}
+.inline-translation-online:hover { background: var(--interactive); }
+.inline-translation[data-error] .inline-translation-pair { flex-wrap: wrap; gap: 4px; }
 .inline-translation-original, .inline-translation-body { min-width: 0; margin: 0; padding-block: 7px; overflow-wrap: anywhere; }
 .inline-translation-original { color: var(--muted); font-size: 13px; }
 .inline-translation-body { font-weight: 650; }

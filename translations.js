@@ -1,4 +1,7 @@
 const english = {
+  'Traducir con MyMemory':'Translate with MyMemory',
+  'Se envía solo el texto seleccionado.':'Only the selected text is sent.',
+  'No se pudo traducir en línea. Puedes abrir Google Translate.':'Could not translate online. You can open Google Translate.',
   'Abrir audio de prueba':'Open sample audio',
   'Cargando el audio de prueba…':'Loading the sample audio…',
   'No se pudo cargar el audio de prueba. Comprueba tu conexión y vuelve a intentarlo.':'Could not load the sample audio. Check your connection and try again.',

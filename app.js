@@ -6,7 +6,7 @@ import { exportPreparedSection, importPreparedSection, SECTION_FILE_LIMIT } from
 import { bindReaderTranslation, prepareReaderWords } from './reader-translation-gesture.js'
 import { createLookupSpeech } from './reader-lookup-speech.js'
 import { speechChunk } from './speech-chunk.js'
-import { initTranslations, setLanguage, translate } from './translations.js'
+import { initTranslations, setLanguage, translate } from './translations.js?v=26-translation'
 
 const $ = (selector, parent = document) => parent.querySelector(selector)
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)]
@@ -985,6 +985,19 @@ function buildGoogleTranslateUrl(text, sourceLang) {
   return url.href
 }
 
+async function translateWithMyMemory(text, sourceLang, targetLang, signal) {
+  const url = new URL('https://api.mymemory.translated.net/get')
+  url.search = new URLSearchParams({ q: text, langpair: sourceLang + '|' + targetLang })
+  const response = await fetch(url, { signal, referrerPolicy: 'no-referrer' })
+  if (!response.ok) throw new Error('No se pudo traducir en línea.')
+  const result = await response.json()
+  const translation = result.responseData?.translatedText
+  if (Number(result.responseStatus) !== 200 || result.quotaFinished || typeof translation !== 'string' || !translation.trim()) {
+    throw new Error('No se pudo traducir en línea.')
+  }
+  return translation
+}
+
 function speakLookup(lookup, text, language) {
   lookup.status.textContent = ''
   lookupSpeech.speak(text, language, () => {
@@ -1080,6 +1093,15 @@ async function showInlineTranslation({ line, text, words, commit, alreadyRequest
   activeInlineLookup = lookup
   if (commit) commitLookup(lookup, words.length)
 
+  const showResult = result => {
+    box.removeAttribute('data-error')
+    body.lang = targetLang
+    body.textContent = result
+    lookup.translated = result
+    repeatTranslation.hidden = !result
+    speakTranslatedLookup(lookup)
+  }
+
   const showFallback = message => {
     box.setAttribute('data-error', '')
     body.textContent = translate(message)
@@ -1089,6 +1111,35 @@ async function showInlineTranslation({ line, text, words, commit, alreadyRequest
     extLink.target = '_blank'
     extLink.rel = 'noopener noreferrer'
     translatedPair.append(extLink)
+    if (new TextEncoder().encode(text).byteLength > 500) return
+
+    const online = document.createElement('button')
+    online.type = 'button'
+    online.className = 'inline-translation-online'
+    online.textContent = translate('Traducir con MyMemory')
+    body.textContent = translate(message) + ' ' + translate('Se envía solo el texto seleccionado.')
+    translatedPair.insertBefore(online, extLink)
+    online.addEventListener('click', async () => {
+      if (request !== translationRequest || online.disabled) return
+      const controller = new AbortController()
+      activeInlineController = controller
+      const timeout = setTimeout(() => controller.abort(), 12_000)
+      online.disabled = true
+      lookup.readTranslation = words.length > 1
+      body.textContent = translate('Traduciendo…')
+      try {
+        const result = await translateWithMyMemory(text, sourceLang, targetLang, controller.signal)
+        if (request !== translationRequest) return
+        online.remove()
+        showResult(result)
+      } catch {
+        if (request === translationRequest) body.textContent = translate('No se pudo traducir en línea. Puedes abrir Google Translate.')
+      } finally {
+        clearTimeout(timeout)
+        if (activeInlineController === controller) activeInlineController = null
+        online.disabled = false
+      }
+    })
   }
 
   if (!globalThis.Translator) {
@@ -1116,13 +1167,9 @@ async function showInlineTranslation({ line, text, words, commit, alreadyRequest
     body.textContent = translate('Traduciendo…')
     const result = await translator.translate(text, { signal: controller.signal })
     if (request !== translationRequest || controller.signal.aborted) return
-    body.lang = targetLang
-    body.textContent = result
-    lookup.translated = result
-    repeatTranslation.hidden = !result
-    speakTranslatedLookup(lookup)
-  } catch (err) {
-    if (request !== translationRequest || controller.signal.aborted || err?.name === 'AbortError') return
+    showResult(result)
+  } catch {
+    if (request !== translationRequest || controller.signal.aborted) return
     showFallback('No se pudo traducir en el dispositivo.')
   } finally {
     translator?.destroy?.()
