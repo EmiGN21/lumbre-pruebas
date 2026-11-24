@@ -1,4 +1,7 @@
 const english = {
+  'Abrir audio de prueba':'Open sample audio',
+  'Cargando el audio de prueba…':'Loading the sample audio…',
+  'No se pudo cargar el audio de prueba. Comprueba tu conexión y vuelve a intentarlo.':'Could not load the sample audio. Check your connection and try again.',
   'Descargar sección con audio':'Download section with audio',
   'Agrega un PDF, EPUB, archivo de audio o paquete Lumbre.':'Add a PDF, EPUB, audio file, or Lumbre package.',
   'PDF y EPUB hasta 40 MB · paquete Lumbre hasta 64 MB · audio hasta 250 MB':'PDF and EPUB up to 40 MB · Lumbre package up to 64 MB · audio up to 250 MB',

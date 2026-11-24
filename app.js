@@ -1389,6 +1389,38 @@ function openImport() {
   if (!importDialog.open) importDialog.showModal()
 }
 
+async function openAudioSample() {
+  const button = $('[data-action="sample-audio"]')
+  const submit = $('#import-submit')
+  if (button.disabled || submit.disabled) return
+  button.disabled = submit.disabled = true
+  try {
+    const id = 'pdf-lumbre-audio-demo-v26'
+    let book = findBook(id)
+    if (!book) {
+      importFeedback('Cargando el audio de prueba…')
+      const response = await fetch(new URL('./prueba-v26.lumbre.zip', import.meta.url))
+      if (!response.ok) throw new Error('No se pudo cargar el audio de prueba.')
+      const sample = await importPreparedSection(await response.blob())
+      book = { id, type: 'pdf', format: 'Lumbre', genre: 'Lumbre', title: sample.title,
+        language: sample.language, chapters: [sample.chapter], duration: sample.chapter.duration }
+      await pdfStorage('readwrite', store => store.put(book))
+      pdfs.push(book)
+    }
+    const url = new URL(location.href)
+    url.searchParams.delete('prueba')
+    history.replaceState(null, '', url)
+    if (importDialog.open) importDialog.close()
+    openPart(book, 0, 0, false)
+    openReader(book)
+  } catch {
+    openImport()
+    importFeedback('No se pudo cargar el audio de prueba. Comprueba tu conexión y vuelve a intentarlo.', true)
+  } finally {
+    button.disabled = submit.disabled = false
+  }
+}
+
 $('#file').addEventListener('change', event => chooseFile(event.target.files[0]))
 const dropzone = $('#dropzone')
 dropzone.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('drag') })
@@ -1511,6 +1543,7 @@ document.addEventListener('click', event => {
     case 'rewind': jumpBy(-15); break
     case 'forward': jumpBy(15); break
     case 'import': openImport(); break
+    case 'sample-audio': void openAudioSample(); break
     case 'close': target.closest('dialog').close(); break
     case 'sleep': setSleep(Number(target.dataset.minutes)); break
     case 'clear-search': search.value = ''; renderShelf(); search.focus(); break
@@ -1636,3 +1669,7 @@ if (!current && previous && !previous.finished && recent.chapters[previous.chapt
   openPart(recent, previous.chapter, previous.position, false)
 }
 $('[data-action="reset-imports"]').disabled = false
+if (new URLSearchParams(location.search).get('prueba') === 'audio') {
+  openImport()
+  void openAudioSample()
+}
