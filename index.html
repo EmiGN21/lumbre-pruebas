@@ -9,9 +9,9 @@
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./assets/app-192.png">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=26">
   <script type="module" src="./legacy-audio-ui.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=26"></script>
 </head>
 <body>
   <a class="skip" href="#main">Ir al contenido</a>
@@ -62,10 +62,6 @@
         <header class="reader-head">
           <button class="icon-button reader-minimize" data-action="minimize-reader" aria-label="Minimizar lectura" data-icon="chevron-down"></button>
           <div class="reader-heading"><h1 id="reading-title" tabindex="-1">Lectura</h1><p id="reading-meta"></p></div>
-          <div id="reading-actions" class="reading-actions" hidden>
-            <button class="button outline" data-action="details-current"><span data-icon="list"></span>Secciones</button>
-            <button class="button outline" data-action="toggle-translation" aria-pressed="false">Traducir al tocar</button>
-          </div>
         </header>
         <div id="reader-text" tabindex="0" aria-label="Texto de la sección"></div>
         <div id="reader-empty" class="empty"></div>
@@ -150,6 +146,10 @@
         <summary><span data-icon="speedometer"></span><span>Velocidad de reproducción <output id="reader-speed-value">1×</output></span><span data-icon="chevron-down"></span></summary>
         <label class="reader-speed-control"><span>Velocidad</span><input id="reader-speed" type="range" min="0.5" max="2.5" step="0.05"></label>
       </details>
+      <button class="reader-narration-option" data-action="reader-narration" hidden><span data-icon="play"></span><span>Usar audio guardado</span></button>
+      <button class="reader-narration-option" data-action="reader-prepare" hidden><span data-icon="play"></span><span>Preparar audio de esta sección</span></button>
+      <button class="reader-narration-option" data-action="reader-export" hidden><span data-icon="install"></span><span>Descargar sección con audio</span></button>
+      <p class="reader-audio-note" id="reader-preparation-status" role="status" hidden></p>
       <p class="reader-audio-note">La voz del dispositivo puede pausarse al bloquear la pantalla.</p>
     </div>
   </dialog>
@@ -162,9 +162,9 @@
     <div class="import-body">
       <span class="import-mark" data-icon="file"></span>
       <h2 id="import-title">Importar archivo</h2>
-      <p>Agrega un PDF con texto seleccionable, un EPUB o un archivo de audio.</p>
+      <p>Agrega un PDF, EPUB, archivo de audio o paquete Lumbre.</p>
       <form id="import-form">
-        <label class="dropzone" id="dropzone"><span data-icon="upload"></span><strong id="file-label">Seleccionar un archivo</strong><small>PDF y EPUB hasta 40 MB · audio hasta 250 MB</small><input type="file" id="file" accept=".pdf,.epub,.mp3,.m4a,.m4b,.mp4,.aac,.wav,.ogg,.opus,.flac,application/pdf,application/epub+zip,audio/*" required></label>
+        <label class="dropzone" id="dropzone"><span data-icon="upload"></span><strong id="file-label">Seleccionar un archivo</strong><small>PDF y EPUB hasta 40 MB · paquete Lumbre hasta 64 MB · audio hasta 250 MB</small><input type="file" id="file" accept=".pdf,.epub,.zip,.mp3,.m4a,.m4b,.mp4,.aac,.wav,.ogg,.opus,.flac,application/pdf,application/epub+zip,application/zip,audio/*" required></label>
         <label class="field">Título <input id="pdf-title" maxlength="120" placeholder="Nombre del audiolibro"></label>
         <label class="ocr-option"><input type="checkbox" id="import-ocr"> Reconocer texto de páginas escaneadas (PDF)</label>
         <small class="muted">El reconocimiento puede tardar y descarga datos de idioma la primera vez.</small>

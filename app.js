@@ -1,5 +1,8 @@
 import { bookLanguage, deviceLanguage } from './book-language.js'
-import { pdfStorage } from './library-store.js'
+import { pdfStorage, savePreparedAudio } from './library-store.js?v=25'
+import { localVoiceAvailable, prepareLocalVoice } from './local-voice.js'
+import { loadPreparedNarration, preparedNarration } from './prepared-narration.js?v=26'
+import { exportPreparedSection, importPreparedSection, SECTION_FILE_LIMIT } from './section-transfer.js'
 import { bindReaderTranslation, prepareReaderWords } from './reader-translation-gesture.js'
 import { createLookupSpeech } from './reader-lookup-speech.js'
 import { speechChunk } from './speech-chunk.js'
@@ -73,6 +76,14 @@ const search = $('#search')
 const bookDialog = $('#book-dialog')
 const importDialog = $('#import-dialog')
 const readerOptions = $('#reader-options')
+const readerOptionsButton = $('[data-action="reader-options"]')
+const narrationButton = $('[data-action="reader-narration"]', readerOptions)
+const preparationButton = $('[data-action="reader-prepare"]', readerOptions)
+const exportSectionButton = $('[data-action="reader-export"]', readerOptions)
+const preparationStatus = $('#reader-preparation-status')
+readerOptions.addEventListener('close', () => {
+  if (readerOptionsButton.getClientRects().length) readerOptionsButton.focus({ preventScroll: true })
+})
 const progress = load('progress', {})
 const saved = new Set(load('saved', []))
 let catalog = []
@@ -91,6 +102,7 @@ let speechPlaying = false
 let selectedFile
 let pendingImportId = ''
 let localAudioUrl
+let preparation
 let voiceLanguage = load('book-language-mode', 'auto')
 const voiceChoices = load('device-voices', {})
 let translating = load('translate-on-tap', false)
@@ -343,12 +355,17 @@ function showDetails(book) {
 }
 
 function activePart() { return current?.book.chapters[current.chapter] }
-function speaking() { return current?.book.type === 'pdf' }
-function isPlaying() { return current && (speaking() ? speechPlaying : !audio.paused) }
-function partDuration() { return current && !speaking() && current.ready && Number.isFinite(audio.duration) ? audio.duration : activePart()?.duration ?? 0 }
+function textBook() { return current?.book.type === 'pdf' }
+function speaking() { return textBook() && !current.prepared }
+function isPlaying() { return current && (speaking() ? speechPlaying : !audio.paused && !audio.ended) }
+function partDuration() {
+  if (current?.ready && !speaking() && Number.isFinite(audio.duration)) return audio.duration
+  return current?.prepared?.duration ?? activePart()?.duration ?? 0
+}
 function shownPosition() {
   const part = activePart()
   if (!part) return 0
+  if (current.prepared) return current.ready ? audio.currentTime : current.prepared.toSeconds(current.position)
   return speaking() ? current.position / part.text.length * part.duration : current.position
 }
 
@@ -403,7 +420,6 @@ function renderReader() {
   document.body.classList.toggle('reader-immersive', hasText)
   $('#reading-title').textContent = hasText ? current.book.title : 'Lectura'
   $('#reading-meta').textContent = hasText ? part.title : ''
-  $('#reading-actions').hidden = !hasText
   empty.hidden = hasText
   if (!hasText) {
     readerPart = undefined
@@ -463,7 +479,7 @@ function lineIndex(position) {
 }
 
 function updateReader() {
-  if ($('#reading').hidden || !speaking() || readerPart !== activePart()) return
+  if ($('#reading').hidden || !textBook() || readerPart !== activePart()) return
   const container = $('#reader-text')
   if (container.dataset.draggingRange === 'true') return
   const index = lineIndex(current.position)
@@ -504,15 +520,115 @@ async function minimizeReader(button) {
   if (location.hash !== '#lectura') return
   location.hash = readerReturnView
   renderShelf()
-  $('.mobile-nav [aria-current="page"]')?.focus({ preventScroll: true })
+  const selectedLink = $$('[data-view][aria-current="page"]').find(link => link.getClientRects().length)
+  selectedLink?.focus({ preventScroll: true })
 }
 
 function showReaderOptions() {
   if (!current || readerOptions.open) return
   $('#reader-sections').innerHTML = renderChapters(current.book, 'reader-section')
   $('.reader-audio-note', readerOptions).hidden = !speaking()
+  narrationButton.hidden = true
+  preparationButton.hidden = true
+  exportSectionButton.hidden = true
+  updatePreparationStatus()
   for (const details of $$('details', readerOptions)) details.open = false
   readerOptions.showModal()
+  if (textBook()) void showPreparedOption(current)
+}
+
+async function showPreparedOption(section) {
+  try {
+    section.savedNarration ??= await loadPreparedNarration(section.book.id, section.chapter, section.book.chapters[section.chapter].text.length)
+  } catch {
+    return
+  }
+  if (current !== section || !readerOptions.open) return
+  if (section.savedNarration) {
+    $('span:last-child', narrationButton).textContent = translate(section.prepared ? 'Usar la voz del dispositivo' : 'Usar audio guardado')
+    narrationButton.hidden = false
+    preparationButton.hidden = true
+    exportSectionButton.hidden = false
+    return
+  }
+  const available = await localVoiceAvailable(narrationLanguage())
+  if (current === section && readerOptions.open) preparationButton.hidden = !available
+}
+
+async function downloadReaderSection() {
+  const section = activePart()
+  const book = current?.book
+  const track = current?.savedNarration
+  if (!section || !track || exportSectionButton.disabled) return
+  exportSectionButton.disabled = true
+  try {
+    const archive = await exportPreparedSection({ book, section, track, language: narrationLanguage() })
+    const url = URL.createObjectURL(archive)
+    const link = document.createElement('a')
+    const name = (book.title + ' - ' + section.title).replace(/[<>:"/\\|?*\u0000-\u001f]+/g, ' ').trim().slice(0, 100)
+    link.href = url
+    link.download = (name || 'Lumbre') + '.lumbre.zip'
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  } catch (error) {
+    updatePreparationStatus(translate(error.message || 'No se pudo descargar la sección.'))
+  } finally {
+    exportSectionButton.disabled = false
+  }
+}
+
+function updatePreparationStatus(message = '') {
+  preparationButton.disabled = !!preparation
+  const ownJob = preparation && preparation.section === current
+  const status = message || (ownJob ? translate('Preparando audio') + ' · ' + preparation.progress + '%' : '')
+  preparationStatus.textContent = status
+  preparationStatus.hidden = !status
+}
+
+async function prepareReaderNarration() {
+  if (!textBook() || preparation || preparationButton.hidden) return
+  const section = current
+  const text = activePart().text
+  const { id } = section.book
+  preparation = { section, progress: 0 }
+  updatePreparationStatus()
+  try {
+    const chunks = await prepareLocalVoice(text, progress => {
+      preparation.progress = progress
+      if (current === section) updatePreparationStatus()
+    })
+    const book = await pdfStorage('readonly', store => store.get(id))
+    if (book?.chapters[section.chapter]?.text !== text) return
+    await savePreparedAudio(id, section.chapter, chunks)
+    if (current === section && readerOptions.open) {
+      await showPreparedOption(section)
+      updatePreparationStatus(translate('Audio guardado. Puedes usarlo desde este menú.'))
+    } else {
+      notify(translate('Audio guardado. Abre el menú de Lectura para usarlo.'))
+    }
+  } catch {
+    const message = translate('No se pudo preparar el audio. Puedes volver a intentarlo.')
+    if (current === section && readerOptions.open) updatePreparationStatus(message)
+    else notify(message)
+  } finally {
+    preparation = undefined
+    preparationButton.disabled = false
+  }
+}
+
+function switchReaderNarration() {
+  if (!current?.savedNarration) return
+  const keepPlaying = isPlaying() || lookupSpeech.narrationSuspended
+  halt()
+  current.prepared = current.prepared ? null : current.savedNarration
+  current.ready = false
+  clearAudioSource()
+  if (current.prepared) setAudioSource(current.prepared.blob)
+  readerOptions.close()
+  if (keepPlaying) start()
+  else updatePlayer()
 }
 
 function selectReaderSection(index) {
@@ -571,6 +687,13 @@ function stopSpeech() {
   window.speechSynthesis?.cancel()
 }
 
+function interruptNarration() {
+  stopSpeech()
+  persist(true)
+  updatePlayer()
+  playerError('La lectura en voz alta se interrumpió. Pulsa Reproducir para reanudar.')
+}
+
 function halt() {
   stopLookupPlayback()
   if (!current) return
@@ -583,23 +706,39 @@ function halt() {
   updatePlayer()
 }
 
+function clearAudioSource() {
+  if (audio.hasAttribute('src')) {
+    audio.removeAttribute('src')
+    audio.load()
+  }
+  if (localAudioUrl) URL.revokeObjectURL(localAudioUrl)
+  localAudioUrl = undefined
+  if (current) current.audioSource = undefined
+}
+
+function setAudioSource(source) {
+  if (source instanceof Blob) {
+    localAudioUrl = URL.createObjectURL(source)
+    source = localAudioUrl
+  }
+  current.audioSource = source
+  audio.src = source
+  audio.playbackRate = speed
+}
+
 function openPart(book, index, position = 0, play = true) {
   const part = book.chapters[index]
   if (!part) return
   halt()
-  if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = undefined }
+  clearAudioSource()
   current = { book, chapter: index, position: Math.min(speakingLimit(book, part), Math.max(0, position)), ready: false, started: play || !!progress[book.id], finished: false }
   playerError()
   if (book.type === 'audio') {
-    if (book.imported && book.file) {
-      localAudioUrl = URL.createObjectURL(book.file)
-      part.url = localAudioUrl
-    }
-    audio.src = part.url
-    audio.playbackRate = speed
-  } else if (audio.hasAttribute('src')) {
-    audio.removeAttribute('src')
-    audio.load()
+    setAudioSource(book.imported && book.file ? book.file : part.url)
+  } else if (part.preparedAudio) {
+    const { blob, cues } = part.preparedAudio
+    current.savedNarration = current.prepared = preparedNarration(blob, cues, part.text.length)
+    setAudioSource(blob)
   }
   if (play) start()
   persist(true)
@@ -637,6 +776,8 @@ function start() {
   else {
     const request = current
     if (audio.error) audio.load()
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback' }
+    catch { /* The media element remains usable without an explicit audio session. */ }
     audio.play().catch(error => {
       if (current === request && error.name !== 'AbortError') playerError('No se pudo reproducir el audio. Comprueba tu conexión e inténtalo de nuevo.')
     })
@@ -718,12 +859,15 @@ function startSpeech() {
     else startSpeech()
   }
   nextUtterance.onerror = () => {
-    if (utterance !== nextUtterance) return
-    stopSpeech()
-    updatePlayer()
-    playerError('La lectura en voz alta se interrumpió. Pulsa Reproducir para reanudar.')
+    if (utterance === nextUtterance) interruptNarration()
   }
-  window.speechSynthesis.speak(nextUtterance)
+  const synth = window.speechSynthesis
+  try {
+    if (synth.paused) synth.resume()
+    synth.speak(nextUtterance)
+  } catch {
+    if (utterance === nextUtterance) interruptNarration()
+  }
 }
 
 function jumpBy(seconds) {
@@ -743,7 +887,7 @@ function positionAt(seconds) {
     current.position = index > 0 ? text.lastIndexOf(' ', index - 1) + 1 : 0
     if (wasPlaying) startNarration()
   } else {
-    current.position = position
+    current.position = current.prepared ? current.prepared.toOffset(position) : position
     if (current.ready) audio.currentTime = position
   }
   current.started = true
@@ -753,9 +897,10 @@ function positionAt(seconds) {
 }
 
 function readFrom(offset) {
-  if (!speaking() || !Number.isInteger(offset) || offset < 0 || offset >= activePart().text.length) return
+  if (!textBook() || !Number.isInteger(offset) || offset < 0 || offset >= activePart().text.length) return
   current.position = offset
   current.finished = false
+  if (current.prepared && current.ready) audio.currentTime = current.prepared.toSeconds(offset)
   start()
 }
 
@@ -996,12 +1141,9 @@ updateTranslationMode()
 
 function clearCurrentBook() {
   halt()
+  clearAudioSource()
   current = null
   dock.hidden = true
-  audio.removeAttribute('src')
-  audio.load()
-  if (localAudioUrl) URL.revokeObjectURL(localAudioUrl)
-  localAudioUrl = undefined
   updateMediaSession()
 }
 
@@ -1040,7 +1182,7 @@ function relativeChapter(direction) {
 function finishPart() {
   if (!current) return
   if (current.book.chapters[current.chapter + 1]) {
-    relativeChapter(1)
+    openPart(current.book, current.chapter + 1, 0, !current.prepared)
     return
   }
   if (speaking()) stopSpeech()
@@ -1052,19 +1194,20 @@ function finishPart() {
 }
 
 function isCurrentAudio() {
-  return current && !speaking() && audio.currentSrc === activePart().url
+  return current?.audioSource && audio.currentSrc === current.audioSource
 }
 
 audio.addEventListener('loadedmetadata', () => {
   if (!isCurrentAudio()) return
+  const position = current.prepared ? current.prepared.toSeconds(current.position) : current.position
   current.ready = true
   audio.playbackRate = speed
-  if (current.position) audio.currentTime = Math.min(current.position, Math.max(0, audio.duration - 0.15))
+  if (position) audio.currentTime = Math.min(position, Math.max(0, audio.duration - 0.15))
   updateTimeline()
 })
 audio.addEventListener('timeupdate', () => {
   if (!isCurrentAudio() || !current.ready || current.finished) return
-  current.position = audio.currentTime
+  current.position = current.prepared ? current.prepared.toOffset(audio.currentTime) : audio.currentTime
   updateTimeline()
   persist()
   expireSleepTimer()
@@ -1146,7 +1289,7 @@ syncThemeSwitch()
 
 async function updateWakeLock() {
   const wanted = () => $('#keep-awake').checked && !document.hidden &&
-    (isPlaying() || (!$('#reading').hidden && speaking()))
+    (isPlaying() || (!$('#reading').hidden && textBook()))
   if (!wanted()) {
     const previous = wakeLock
     wakeLock = undefined
@@ -1228,11 +1371,17 @@ function audioDuration(file) {
   })
 }
 
+const supportedImport = /\.(pdf|epub|zip|mp3|m4a|m4b|mp4|aac|wav|ogg|opus|flac)$/i
+
+function importTitle(file) {
+  return file.name.replace(/\.lumbre\.zip$/i, '').replace(supportedImport, '').slice(0, 120)
+}
+
 function chooseFile(file) {
   if (file !== selectedFile) pendingImportId = file ? crypto.randomUUID() : ''
   selectedFile = file
   $('#file-label').textContent = file?.name ?? 'Seleccionar un archivo'
-  $('#pdf-title').value = file?.name.replace(/\.(pdf|epub|mp3|m4a|m4b|mp4|aac|wav|ogg|opus|flac)$/i, '').slice(0, 120) ?? ''
+  $('#pdf-title').value = file ? importTitle(file) : ''
   importFeedback('')
 }
 
@@ -1254,9 +1403,10 @@ dropzone.addEventListener('drop', event => {
 
 $('#import-form').addEventListener('submit', async event => {
   event.preventDefault()
-  if (!selectedFile || !/\.(pdf|epub|mp3|m4a|m4b|mp4|aac|wav|ogg|opus|flac)$/i.test(selectedFile.name)) return importFeedback('Elige un PDF, EPUB o archivo de audio compatible.', true)
+  if (!selectedFile || !supportedImport.test(selectedFile.name)) return importFeedback('Elige un PDF, EPUB, audio o paquete Lumbre.', true)
   const audioFile = /\.(mp3|m4a|m4b|mp4|aac|wav|ogg|opus|flac)$/i.test(selectedFile.name)
-  const limit = audioFile ? 250 : 40
+  const portable = /\.zip$/i.test(selectedFile.name)
+  const limit = portable ? SECTION_FILE_LIMIT / (1024 * 1024) : audioFile ? 250 : 40
   if (selectedFile.size > limit * 1024 * 1024) return importFeedback('El archivo supera el límite de ' + limit + ' MB.', true)
   pendingImportId ||= crypto.randomUUID()
   const submit = $('#import-submit')
@@ -1266,11 +1416,20 @@ $('#import-form').addEventListener('submit', async event => {
   importFeedback('Abriendo el documento…')
   try {
     const format = selectedFile.name.split('.').pop().toLowerCase()
-    const title = $('#pdf-title').value.trim() || selectedFile.name.replace(/\.[^.]+$/, '').slice(0, 120) || 'Archivo importado'
+    const name = $('#pdf-title').value.trim()
+    const title = name || importTitle(selectedFile) || 'Archivo importado'
     let book
     if (audioFile) {
       const duration = await audioDuration(selectedFile)
       book = { id: 'audio-' + pendingImportId, title, author: '', type: 'audio', imported: true, genre: 'Audio', file: selectedFile, chapters: [{ title: 'Audio completo', duration }], duration }
+    } else if (portable) {
+      const imported = await importPreparedSection(selectedFile)
+      book = {
+        id: 'pdf-' + pendingImportId,
+        title: name && name !== importTitle(selectedFile) ? name : imported.title,
+        author: '', type: 'pdf', language: imported.language, format: 'Lumbre', genre: 'Lumbre',
+        chapters: [imported.chapter], duration: imported.chapter.duration,
+      }
     } else {
       const content = format === 'epub'
         ? await (await import('./epub-import.js')).extractEpub(selectedFile)
@@ -1328,6 +1487,9 @@ document.addEventListener('click', event => {
     case 'read-current': openReader(current?.book); break
     case 'minimize-reader': void minimizeReader(target); break
     case 'reader-options': showReaderOptions(); break
+    case 'reader-prepare': void prepareReaderNarration(); break
+    case 'reader-export': void downloadReaderSection(); break
+    case 'reader-narration': switchReaderNarration(); break
     case 'reader-section': selectReaderSection(Number(target.dataset.chapter)); break
     case 'toggle-translation':
       translating = !translating
@@ -1401,8 +1563,14 @@ window.addEventListener('hashchange', () => { renderShelf(); window.scrollTo(0, 
 window.addEventListener('pagehide', () => { stopLookupPlayback(); persist(true); if (speaking()) stopSpeech() })
 window.addEventListener('pageshow', event => { if (event.persisted) updatePlayer() })
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) persist(true)
-  else expireSleepTimer()
+  if (document.hidden) {
+    persist(true)
+    return
+  }
+  expireSleepTimer()
+  if (!speechPlaying) return
+  const synth = window.speechSynthesis
+  if (synth.paused || (!synth.speaking && !synth.pending)) interruptNarration()
 })
 
 function showInstallButtons() {

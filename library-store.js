@@ -1,4 +1,5 @@
 let pdfConnection
+let preparedConnection
 
 function openDatabase(name, initialize, onClose) {
   return new Promise((resolve, reject) => {
@@ -58,6 +59,29 @@ export function pdfStorage(mode, operation) {
   return storage(libraryDb(), 'pdfs', mode, tx => operation(tx.objectStore('pdfs')))
 }
 
+export async function savePreparedAudio(bookId, chapter, chunks) {
+  const reset = () => { preparedConnection = undefined }
+  preparedConnection ??= openDatabase('lumbre-audio', db => {
+    db.createObjectStore('audioChunks', { keyPath: ['bookId', 'chapter', 'start'] })
+    db.createObjectStore('audioParts', { keyPath: ['bookId', 'chapter'] })
+  }, reset).catch(error => { reset(); throw error })
+  const db = await preparedConnection
+  const stores = db.objectStoreNames.contains('audioParts') ? ['audioChunks', 'audioParts'] : ['audioChunks']
+  return storage(Promise.resolve(db), stores, 'readwrite', tx => {
+    const audioChunks = tx.objectStore('audioChunks')
+    audioChunks.delete(IDBKeyRange.bound([bookId, chapter, -Infinity], [bookId, chapter, Infinity]))
+    for (const chunk of chunks) audioChunks.put({ bookId, chapter, ...chunk })
+    if (stores.includes('audioParts')) {
+      tx.objectStore('audioParts').put({
+        bookId,
+        chapter,
+        end: chunks.at(-1).end,
+        seconds: chunks.reduce((total, chunk) => total + chunk.pcm.length, 0) / 24_000,
+      })
+    }
+  })
+}
+
 export async function clearOldAudio() {
   const db = await libraryDb()
   const stores = ['audioParts', 'audioChunks'].filter(name => db.objectStoreNames.contains(name))
@@ -65,6 +89,11 @@ export async function clearOldAudio() {
     await storage(Promise.resolve(db), stores, 'readwrite', tx => {
       for (const name of stores) tx.objectStore(name).clear()
     })
+  }
+  if (preparedConnection) {
+    const connection = await preparedConnection.catch(() => null)
+    preparedConnection = undefined
+    connection?.close()
   }
   await new Promise((resolve, reject) => {
     const request = indexedDB.deleteDatabase('lumbre-audio')
